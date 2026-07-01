@@ -67,12 +67,12 @@ main_tabs = st.tabs(["Game", "Deck Manager", "League Rules"])
 
 with main_tabs[1]:
     st.header("Deck Manager")
-    st.write("Add more Commander decks to the league. Paste a decklist in `1 Card Name` format and include the commander in the 100 cards.")
+    st.write("Add more Commander decks to the league. Paste a decklist in `1 Card Name` format and include 99 main-deck cards plus 1 commander line. The app removes the commander before shuffling.")
 
     with st.expander("Add or replace a deck", expanded=True):
         deck_name = st.text_input("Deck name", placeholder="Example: Veloci-ramp-tor")
         commander = st.text_input("Commander name exactly as listed", placeholder="Example: Pantlaza, Sun-Favored")
-        deck_text = st.text_area("100-card decklist", height=260, placeholder="1 Sol Ring\n1 Arcane Signet\n36 Forest\n1 Commander Name")
+        deck_text = st.text_area("99+1 Commander decklist", height=260, placeholder="1 Sol Ring\n1 Arcane Signet\n36 Forest\n1 Commander Name")
         if deck_text and commander:
             summary = deck_summary(deck_text, commander)
             st.json(summary)
@@ -82,7 +82,7 @@ with main_tabs[1]:
             else:
                 summary = deck_summary(deck_text, commander)
                 if summary["total_cards"] != 100:
-                    st.warning(f"This list has {summary['total_cards']} cards, not 100. It will save, but games may validate with issues.")
+                    st.warning(f"This list has {summary['total_cards']} total cards, not 100. It should be 99 main-deck cards plus 1 commander.")
                 if not summary["commander_present"]:
                     st.warning("Commander was not found in the decklist. It will save, but game start will not be able to move it from deck to command zone.")
                 st.session_state.decklists[deck_name.strip()] = deck_text
@@ -95,7 +95,7 @@ with main_tabs[1]:
     for name, text in st.session_state.decklists.items():
         commander = st.session_state.commanders.get(name, "")
         s = deck_summary(text, commander)
-        rows.append({"Deck": name, "Commander": commander, "Cards": s["total_cards"], "Commander present": s["commander_present"], "Duplicate nonbasics": len(s["duplicates"])})
+        rows.append({"Deck": name, "Commander": commander, "Total": s["total_cards"], "Main after commander removed": s.get("main_deck_cards_after_commander_removed", ""), "Commander present": s["commander_present"], "Duplicate nonbasics": len(s["duplicates"])})
     st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
 
 with main_tabs[2]:

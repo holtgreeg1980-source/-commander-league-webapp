@@ -26,6 +26,8 @@ def deck_summary(text: str, commander: str) -> Dict[str, Any]:
     counts = {c: cards.count(c) for c in sorted(set(cards))}
     return {
         "total_cards": len(cards),
+        "commander_count": cards.count(commander),
+        "main_deck_cards_after_commander_removed": len(cards) - min(cards.count(commander), 1),
         "commander_present": commander in cards,
         "unique_cards": len(set(cards)),
         "duplicates": {c: n for c, n in counts.items() if n > 1 and c not in BASIC_LANDS},
@@ -210,5 +212,7 @@ def validate(game: GameState) -> List[str]:
         if p.commander not in [card for z in ZONES for card in getattr(p, z)]:
             issues.append(f"{p.name}: commander not found in any zone.")
         if zones_count != 100:
-            issues.append(f"{p.name}: zone card count is {zones_count}, expected 100. Tokens: {len(p.tokens)}")
+            issues.append(f"{p.name}: tracked card count is {zones_count}, expected 100 including commander in command zone. Tokens are separate: {len(p.tokens)}")
+        if len(p.library) + len(p.hand) + len(p.battlefield) + len(p.graveyard) + len(p.exile) != 99:
+            issues.append(f"{p.name}: non-commander zones total should be 99 cards after commander is separated.")
     return issues
